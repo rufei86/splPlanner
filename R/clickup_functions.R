@@ -12,7 +12,7 @@
 #'
 #' @return None. Tasks are created in ClickUp via clickrup API.
 #' @examples
-#' # make_ClickUp_tasks(plan, "MyFolder", "MyList")
+#' @export
 make_ClickUp_tasks <- function(plan, folder_name, list_name, project_name, message, id_name = "Physical Tag") {
   # Get available workspaces (teams)
   Teams <- clickrup::cu_get_teams()

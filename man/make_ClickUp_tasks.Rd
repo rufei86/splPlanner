@@ -31,6 +31,3 @@ None. Tasks are created in ClickUp via clickrup API.
 Creates tasks for each unique collection date in a plan data frame using the ClickUp API.
 Tasks are assigned a name, description, high priority, set assignees, and a due date one day after the collection date.
 }
-\examples{
-# make_ClickUp_tasks(plan, "MyFolder", "MyList")
-}
