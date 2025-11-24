@@ -11,7 +11,7 @@
 #' @param message Message to use in the task description (default "Please sac and collect these animals: ").
 #'
 #' @return None. Tasks are created in ClickUp via clickrup API.
-#' @examples
+#' @examples Add click-up from the plan matrix
 #' @export
 make_ClickUp_tasks <- function(plan, folder_name, list_name, project_name, message, id_name = "Physical Tag") {
   # Get available workspaces (teams)

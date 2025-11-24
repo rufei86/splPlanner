@@ -1,12 +1,21 @@
 Package: splPlanner
-Title: What the Package Does (One Line, Title Case)
+Title: This R package automatically plans any longitudinal experiment and update to Click-Up task manager
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
+    person("Rufei", "Lu", , "rufei-lu@omrf.org", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
-License: MIT + file LICENSE
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
 Encoding: UTF-8
+Imports:
+    dplyr,
+    clickrup,
+    tidyr,
+    purrr,
+    openxlsx
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-Imports: 
-    dplyr
