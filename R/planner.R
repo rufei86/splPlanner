@@ -219,6 +219,7 @@ match_columns <- function(df, template_names) {
 #' @param id_name_alt Optional alternative column name to be renamed to 'Physical Tag'. Default is NA (no renaming).
 #'
 #' @return A data frame combining the original database and new rows from the directory.
+#' @export
 #' @examples
 #' # update_collection("data", database, id_name_alt = "OtherTag")
 update_collection <- function(dir, database, id_name_alt = NA) {
