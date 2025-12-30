@@ -225,16 +225,28 @@ match_columns <- function(df, template_names) {
 update_collection <- function(dir, database, id_name_alt = NA) {
   # Read files and optionally rename ID column
   files <- if (is.na(id_name_alt)) {
-    lapply(base::dir(dir), FUN = function(i) 
+    lapply(base::dir(dir), FUN = function(i) {
       readxl::read_xlsx(here::here(dir, i), sheet = 1) |>
-      dplyr::mutate(`Date of Birth` = as.Date(`Date of Birth`, format = "%m-%d-%Y"))
-    )
+        dplyr::mutate(
+          `Date of Birth` = as.Date(`Date of Birth`, format = "%m-%d-%Y"),
+          Collection_Date_Blood = as.Date(
+            `Collection_Date_Blood`,
+            format = "%Y-%m-%d"
+          )
+        )
+    })
   } else {
-    lapply(base::dir(dir), FUN = function(i) 
+    lapply(base::dir(dir), FUN = function(i) {
       readxl::read_xlsx(here::here(dir, i), sheet = 1) |>
         dplyr::rename(`Physical Tag` = dplyr::any_of(id_name_alt)) |>
-        dplyr::mutate(`Date of Birth` = as.Date(`Date of Birth`, format = "%m-%d-%Y"))
-    )
+        dplyr::mutate(
+          `Date of Birth` = as.Date(`Date of Birth`, format = "%m-%d-%Y"),
+          Collection_Date_Blood = as.Date(
+            `Collection_Date_Blood`,
+            format = "%Y-%m-%d"
+          )
+        )
+    })
   }
   
   # Match columns to template names
