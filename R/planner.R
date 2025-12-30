@@ -252,7 +252,16 @@ update_collection <- function(dir, database, id_name_alt = NA) {
   # Match columns to template names
   template_names <- base::names(database)
   dfs_matched <- lapply(files, match_columns, template_names = template_names)
-  collected <- do.call(base::rbind, dfs_matched)
+  collected <- 
+    do.call(base::rbind, dfs_matched) |>
+    dplyr::mutate(
+      Collection_Date_Blood = as.Date(
+        `Collection_Date_Blood`,
+        format = "%Y-%m-%d"
+      ),
+      Blood = as.numeric(Blood),
+      Urine = as.numeric(Urine)
+    )
   
   # Bind new data with existing database
   result <- 
