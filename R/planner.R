@@ -85,7 +85,9 @@ generate_collection_plan <- function(
     dob_name = "Date of Birth",
     start_age_wk = 6,
     interval_wk = 4,
-    recurrence = 10
+    recurrence = 10,
+    sum_n = 8,
+    day_diff =7
 ) {
   # Core pipeline adapted to function
   plan_master <- 
@@ -134,7 +136,7 @@ generate_collection_plan <- function(
     dplyr::filter(Collection_Date > Sys.Date()) |>                          # Finally, keep only the ones that are in the future
     dplyr::mutate(Collection_Date = adjust_to_weekday(Collection_Date)) |>  # Change Friday, Saturday, and Sunday to nearest working Monday through Thursday
     dplyr::select(-Latest_Date)
-  plan_master_curated <- remake_sch(plan_master_curated)
+  plan_master_curated <- remake_sch(plan_master_curated, sum_n = sum_n, day_diff = day_diff)
 
   return(plan_master_curated)
 }
@@ -276,12 +278,13 @@ update_collection <- function(dir, database, id_name_alt = NA) {
 #' Organize collection dates into groups based on sample count and day difference.
 #'
 #' @param plan_master_curated A data.frame or tibble with at least 'Physical Tag' and 'Collection_Date' columns.
+#' @param sum_n The number of draws that needed to be combined. Default is 8 draws per day.
+#' @param day_diff Maximum number days apart to be combined. Default is 7 days.
 #'
 #' @return A modified data.frame or tibble with rescheduled collection dates.
 #'
 #' @export
-remake_sch <- function(plan_master_curated) {
-  
+remake_sch <- function(plan_master_curated, sum_n = 8, day_diff = 7) {
   # Prepare the initial summary schedule grouped by Collection_Date
   remake_schedule <- plan_master_curated |>
     dplyr::select(`Physical Tag`, Collection_Date) |>
@@ -293,19 +296,28 @@ remake_sch <- function(plan_master_curated) {
       group = 0,
       sum_n = n
     )
-  
+
   # Handle first row explicitly for day_diff
   remake_schedule[1, "day_diff"] <- 0
-  
+
   group <- 0
-  
+
   i <- 1
   while (i < nrow(remake_schedule)) {
     # Criteria to combine into the same group
-    if (remake_schedule[i, "sum_n"] < 8 && remake_schedule[i + 1, "day_diff"] < 7) {
+    if (
+      remake_schedule[i, "sum_n"] < sum_n &&
+        remake_schedule[i + 1, "day_diff"] < day_diff
+    ) {
       remake_schedule[c(i, i + 1), "group"] <- group
-      remake_schedule[i + 1, "sum_n"] <- sum(remake_schedule[c(i, i + 1), "sum_n"])
-      remake_schedule[i + 1, "day_diff"] <- sum(remake_schedule[c(i, i + 1), "day_diff"])
+      remake_schedule[i + 1, "sum_n"] <- sum(remake_schedule[
+        c(i, i + 1),
+        "sum_n"
+      ])
+      remake_schedule[i + 1, "day_diff"] <- sum(remake_schedule[
+        c(i, i + 1),
+        "day_diff"
+      ])
     } else {
       if (i == nrow(remake_schedule) - 1) {
         remake_schedule[i + 1, "group"] <- group
@@ -316,13 +328,13 @@ remake_sch <- function(plan_master_curated) {
     }
     i <- i + 1
   }
-  
+
   # Compute max date for each group
   remake_schedule <- remake_schedule |>
     dplyr::group_by(group) |>
     dplyr::mutate(New_Date = median(Collection_Date)) |>
     dplyr::ungroup()
-  
+
   # Perform left join and reassign dates as requested
   plan_master_mod <-
     dplyr::left_join(
@@ -332,6 +344,6 @@ remake_sch <- function(plan_master_curated) {
     ) |>
     dplyr::mutate(Collection_Date = New_Date) |>
     dplyr::select(-New_Date)
-  
+
   return(plan_master_mod)
 }
