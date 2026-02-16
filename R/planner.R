@@ -42,13 +42,38 @@ add_collect_date <- function(dob, start_age_wk, interval_wk, recurrence) {
 #' @examples
 #' adjust_to_weekday(as.Date(c("2023-10-14", "2023-10-15", "2023-10-13"))) # Sat, Sun, Fri
 #' @export
-adjust_to_weekday <- function(date) {
+adjust_to_weekday_nofri <- function(date) {
   wday <- as.POSIXlt(date)$wday # 0 = Sunday ... 6 = Saturday (base R)
   date_new <- ifelse(
     wday == 0, date + 1,                 # Sunday: move to Monday
     ifelse(wday == 6, date + 2,          # Saturday: move to Monday
            ifelse(wday == 5, date - 1, date)  # Friday: move to Thursday
     )
+  )
+  as.Date(date_new, origin = "1970-01-01")
+}
+
+
+#' Adjust Dates to Weekdays
+#'
+#' Adjusts a given date so that any date falling on
+#' a weekend or Friday is moved to the closest workday:
+#'
+#' - Sunday moves to Monday (+1)
+#' - Saturday moves to Monday (+2)
+#' - All other days remain unchanged
+#'
+#' @param date A vector of class /code{Date} (base R).
+#' @return A /code{Date} vector the same length as /code{date}, adjusted so that
+#'   weekends and Fridays are shifted to the appropriate weekday.
+#' @examples
+#' adjust_to_weekday(as.Date(c("2023-10-14", "2023-10-15"))) # Sat, Sun, Fri
+#' @export
+adjust_to_weekday <- function(date) {
+  wday <- as.POSIXlt(date)$wday # 0 = Sunday ... 6 = Saturday (base R)
+  date_new <- ifelse(
+    wday == 0, date + 1,                 # Sunday: move to Monday
+    ifelse(wday == 6, date + 2)          # Saturday: move to Monday
   )
   as.Date(date_new, origin = "1970-01-01")
 }
@@ -284,7 +309,7 @@ update_collection <- function(dir, database, id_name_alt = NA) {
 #' @return A modified data.frame or tibble with rescheduled collection dates.
 #'
 #' @export
-remake_sch <- function(plan_master_curated, sum_n = 8, day_diff = 7) {
+remake_sch <- function(plan_master_curated, sum_n = 8, max_n = 24, day_diff = 7) {
   # Prepare the initial summary schedule grouped by Collection_Date
   remake_schedule <- plan_master_curated |>
     dplyr::select(`Physical Tag`, Collection_Date) |>
@@ -309,15 +334,18 @@ remake_sch <- function(plan_master_curated, sum_n = 8, day_diff = 7) {
       remake_schedule[i, "sum_n"] < sum_n &&
         remake_schedule[i + 1, "day_diff"] < day_diff
     ) {
-      remake_schedule[c(i, i + 1), "group"] <- group
-      remake_schedule[i + 1, "sum_n"] <- sum(remake_schedule[
-        c(i, i + 1),
-        "sum_n"
-      ])
-      remake_schedule[i + 1, "day_diff"] <- sum(remake_schedule[
-        c(i, i + 1),
-        "day_diff"
-      ])
+      # Only combined if it does not exceed the next day to 24
+      if (nrow(remake_schedule[c(i, i+1), ]) < max_n) {
+        remake_schedule[c(i, i + 1), "group"] <- group
+        remake_schedule[i + 1, "sum_n"] <- sum(remake_schedule[
+          c(i, i + 1),
+          "sum_n"
+        ])
+        remake_schedule[i + 1, "day_diff"] <- sum(remake_schedule[
+          c(i, i + 1),
+          "day_diff"
+        ])
+      }
     } else {
       if (i == nrow(remake_schedule) - 1) {
         remake_schedule[i + 1, "group"] <- group
