@@ -73,7 +73,7 @@ adjust_to_weekday <- function(date) {
   wday <- as.POSIXlt(date)$wday # 0 = Sunday ... 6 = Saturday (base R)
   date_new <- ifelse(
     wday == 0, date + 1,                 # Sunday: move to Monday
-    ifelse(wday == 6, date + 2)          # Saturday: move to Monday
+    ifelse(wday == 6, date + 2, date)          # Saturday: move to Monday
   )
   as.Date(date_new, origin = "1970-01-01")
 }
