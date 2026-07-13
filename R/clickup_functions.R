@@ -19,7 +19,7 @@ make_ClickUp_tasks <- function(plan, folder_name, list_name, project_name, messa
 
   # Get spaces within a workspace
   team_id <- Teams$teams[[1]]$id
-  Teams$teams[[1]]$members[[17]]
+  #Teams$teams[[1]]$members[[17]]
   Spaces <- clickrup::cu_get_spaces(team_id)
 
   # Get folders and lists
